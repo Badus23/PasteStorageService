@@ -3,8 +3,11 @@ package com.mamchura.pasteService.models;
 import com.mamchura.pasteService.api.PasteStatus;
 import com.mamchura.pasteService.services.TextEntityService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import javax.persistence.*;
+import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Random;
 import java.util.Set;
@@ -27,10 +30,14 @@ public class TextEntity {
     @Column(name = "public_status")
     private PasteStatus publicStatus;
 
-    @Column(name = "hash")
+    @Column(name = "hash", unique = true)
     private int hash;
 
-    private static final Set<Integer> set = new HashSet<>();
+    @Column(name = "date_of_creation")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date expiringDate;
+
+    private static Set<Integer> hashes;
 
     public TextEntity(String data, long expirationTime, PasteStatus publicStatus) {
         this.data = data;
@@ -41,14 +48,30 @@ public class TextEntity {
     @PrePersist
     private void hashInit() {  // Привязать к БД
         int hashCode = this.hashCode();
-        if (set.contains(hashCode)) {
+        if (hashes.contains(hashCode)) {
             hashCode *= new Random().nextInt(32);
         }
-        set.add(hashCode);
+        hashes.add(hashCode);
         this.hash = hashCode;
     }
 
     public TextEntity() {
+    }
+
+    public Date getExpiringDate() {
+        return expiringDate;
+    }
+
+    public void setExpiringDate(Date expiringDate) {
+        this.expiringDate = expiringDate;
+    }
+
+    public Set<Integer> getHashes() {
+        return hashes;
+    }
+
+    public void setHashes(Set<Integer> set) {
+        hashes = set;
     }
 
     public int getHash() {
