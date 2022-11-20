@@ -27,19 +27,16 @@ public class MainController {
 
     @GetMapping("/{hash}")
     public TextEntityDTO getByHash(@PathVariable("hash") int hash) {
-        TextEntity textEntity = textEntityService.findOneByHash(hash);
-        if ((new Date().getTime() - textEntity.getExpiringDate().getTime()) > textEntity.getExpirationTime())
-            throw new ExpiredTimeException();
-        return convertToDTO(textEntity);
+        return convertToDTO(textEntityService.findOneByHash(hash));
     }
 
     @GetMapping("/")
     public Collection<TextEntityDTO> getPasteList() {
-        return textEntityService.findAllWithCheck().stream().map(this::convertToDTO).toList();
+        return textEntityService.findAll().stream().map(this::convertToDTO).toList();
     }
 
     @PostMapping("/")
-    public String add(@RequestBody TextEntity request, HttpServletRequest httpServletRequest) {  //AtomicInteger
+    public String add(@RequestBody TextEntity request, HttpServletRequest httpServletRequest) {
         if (request.getHashes() == null)
             request.setHashes(getHashTable());
         int hash = textEntityService.save(request);

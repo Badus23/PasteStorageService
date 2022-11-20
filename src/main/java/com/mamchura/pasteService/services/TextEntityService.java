@@ -1,6 +1,7 @@
 package com.mamchura.pasteService.services;
 
 import com.mamchura.pasteService.api.PasteStatus;
+import com.mamchura.pasteService.exceptions.ExpiredTimeException;
 import com.mamchura.pasteService.exceptions.HashNotFoundException;
 import com.mamchura.pasteService.models.TextEntity;
 import com.mamchura.pasteService.repositories.TextEntityRepository;
@@ -25,22 +26,28 @@ public class TextEntityService extends com.mamchura.pasteService.services.Servic
 
     public int save(TextEntity textEntity) {
         textEntity.setExpiringDate(new Date());
+        textEntity.setExpirationTime(textEntity.getExpirationTime() * 60000);
         repository.save(textEntity);
         return textEntity.getHash();
     }
 
     public TextEntity findOneByHash(int hash) {
-        return repository.findByHash(hash)
-                .orElseThrow(HashNotFoundException::new);
+        TextEntity textEntity = repository.findByHash(hash).orElseThrow(HashNotFoundException::new);
+        if (isExpired(textEntity)) {
+            throw new ExpiredTimeException();
+        }
+        return textEntity;
     }
 
     public List<TextEntity> findAll() {
-        return repository.findAll();
-    }
-
-    public List<TextEntity> findAllWithCheck() {
         return repository.findAll().stream()
                 .filter(e -> e.getPublicStatus().equals(PasteStatus.PUBLIC))
+                .filter(this::isExpired)
+                .limit(10)
                 .toList();
+    }
+
+    public boolean isExpired(TextEntity textEntity) {
+        return !((new Date().getTime() - textEntity.getExpiringDate().getTime()) <= textEntity.getExpirationTime());
     }
 }
