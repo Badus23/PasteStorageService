@@ -9,13 +9,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
-import java.time.Instant;
 import java.util.Date;
 import java.util.List;
 
 @Service
 @Component
-public class TextEntityService extends com.mamchura.pasteService.services.Service {
+public class TextEntityService {
 
     private final TextEntityRepository repository;
 
@@ -32,7 +31,7 @@ public class TextEntityService extends com.mamchura.pasteService.services.Servic
     }
 
     public TextEntity findOneByHash(int hash) {
-        TextEntity textEntity = repository.findByHash(hash).orElseThrow(HashNotFoundException::new);
+        TextEntity textEntity = repository.findByHash(hash);
         if (isExpired(textEntity)) {
             throw new ExpiredTimeException();
         }

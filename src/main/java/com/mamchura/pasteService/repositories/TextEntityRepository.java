@@ -10,5 +10,5 @@ import java.util.Optional;
 @Repository
 public interface TextEntityRepository extends JpaRepository<TextEntity, Integer> {
     Optional<TextEntity> findById(int id);
-    Optional<TextEntity> findByHash(int hash);
+    TextEntity findByHash(int hash);
 }
